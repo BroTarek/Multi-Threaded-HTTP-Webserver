@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Java Multi-Threaded HTTP Web Server</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-glow"></div>
+    <div class="container">
+        <header class="hero">
+            <div class="badge">⚡ Powered by Java Producer-Consumer Architecture</div>
+            <h1>Multi-Threaded HTTP Server</h1>
+            <p class="subtitle">High-Performance TCP Socket Web Server with Backpressure Management & Thread Pool Concurrency</p>
+        </header>
+
+        <div class="grid">
+            <div class="card status-card">
+                <h2>🚀 Server Architecture</h2>
+                <ul class="spec-list">
+                    <li><span class="label">Pattern:</span> <span class="val accent">Producer / Consumer</span></li>
+                    <li><span class="label">Queue:</span> <span class="val">Bounded ArrayBlockingQueue</span></li>
+                    <li><span class="label">Backpressure:</span> <span class="val green">Active (OS TCP Backlog)</span></li>
+                    <li><span class="label">Supported Methods:</span> <span class="val">GET, POST, PUT, DELETE, HEAD</span></li>
+                </ul>
+            </div>
+
+            <div class="card tester-card">
+                <h2>🧪 HTTP Method API Tester</h2>
+                <div class="form-group">
+                    <label for="httpMethod">Select HTTP Method:</label>
+                    <select id="httpMethod">
+                        <option value="GET">GET /index.html</option>
+                        <option value="POST">POST /api/upload (Create Resource)</option>
+                        <option value="PUT">PUT /test.txt (Update/Create File)</option>
+                        <option value="DELETE">DELETE /test.txt (Delete Resource)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="payloadGroup" style="display: none;">
+                    <label for="requestPayload">Payload Data (JSON / Text):</label>
+                    <textarea id="requestPayload" rows="3" placeholder='{"data": "Hello Java Server"}'></textarea>
+                </div>
+
+                <button id="sendBtn" class="btn">Execute Request</button>
+
+                <div class="response-box" id="responseBox">
+                    <div class="response-header">Response Output</div>
+                    <pre id="responseOutput">// Select a method and click 'Execute Request' to test live endpoints</pre>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Java Concurrency & TCP Socket WebServer &copy; 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        const methodSelect = document.getElementById('httpMethod');
+        const payloadGroup = document.getElementById('payloadGroup');
+        const sendBtn = document.getElementById('sendBtn');
+        const responseOutput = document.getElementById('responseOutput');
+
+        methodSelect.addEventListener('change', () => {
+            const method = methodSelect.value;
+            if (method === 'POST' || method === 'PUT') {
+                payloadGroup.style.display = 'block';
+            } else {
+                payloadGroup.style.display = 'none';
+            }
+        });
+
+        sendBtn.addEventListener('click', async () => {
+            const method = methodSelect.value;
+            let url = '/';
+            let options = { method: method };
+
+            if (method === 'GET') {
+                url = '/index.html';
+            } else if (method === 'POST') {
+                url = '/api/upload';
+                options.headers = { 'Content-Type': 'application/json' };
+                options.body = document.getElementById('requestPayload').value || '{"msg":"Sample POST payload"}';
+            } else if (method === 'PUT') {
+                url = '/test.txt';
+                options.headers = { 'Content-Type': 'text/plain' };
+                options.body = document.getElementById('requestPayload').value || 'Sample text content uploaded via PUT';
+            } else if (method === 'DELETE') {
+                url = '/test.txt';
+            }
+
+            responseOutput.textContent = 'Sending request...';
+
+            try {
+                const startTime = performance.now();
+                const res = await fetch(url, options);
+                const endTime = performance.now();
+                const duration = Math.round(endTime - startTime);
+
+                const text = await res.text();
+                const statusText = `HTTP ${res.status} ${res.statusText} (${duration}ms)\n\nHeaders:\n`;
+                
+                let headersText = '';
+                res.headers.forEach((val, key) => {
+                    headersText += `${key}: ${val}\n`;
+                });
+
+                responseOutput.textContent = `${statusText}${headersText}\nBody:\n${text}`;
+            } catch (err) {
+                responseOutput.textContent = `Error: ${err.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
